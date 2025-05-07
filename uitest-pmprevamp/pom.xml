@@ -43,7 +43,7 @@
 		<javax.ws.rs-api.version>2.1.1</javax.ws.rs-api.version>
 		<commons.beanutils.version>1.9.2</commons.beanutils.version>
 		<resteasy-jaxrs.version>3.15.0.Final</resteasy-jaxrs.version>
-		<aws-java-sdk-s3.version>1.12.470</aws-java-sdk-s3.version>
+		<aws-java-sdk-s3.version>1.12.783</aws-java-sdk-s3.version>
 		<ngwebdriver.version>1.1.5</ngwebdriver.version>
 		<extentreports.version>5.0.9</extentreports.version>
 		<webdrivermanager.version>5.5.3</webdrivermanager.version>
@@ -237,7 +237,7 @@
 
 	<build>
 		<pluginManagement>
-			<plugins></plugins>
+			<plugins/>
 		</pluginManagement>
 		<plugins>
 			<plugin>
@@ -309,8 +309,7 @@
 							<target>
 								<!-- Create a shell script to run the JAR file
 								with executable permission -->
-								<chmod file="${project.build.directory}/*.jar"
-									perm="ugo+rx" />
+								<chmod file="${project.build.directory}/*.jar" perm="ugo+rx"/>
 							</target>
 						</configuration>
 					</execution>
@@ -329,10 +328,8 @@
 						<configuration>
 							<finalName>${fileName}</finalName>
 							<transformers>
-								<transformer
-									implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer" />
-								<transformer
-									implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+								<transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
+								<transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
 									<mainClass>
 										io.mosip.testrig.pmprevampui.utility.TestRunner</mainClass>
 								</transformer>
