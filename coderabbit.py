@@ -8,19 +8,73 @@ import re
 import os
 
 def is_valid_verhoeff(number):
+    """
+    Return True if the given number passes the Verhoeff checksum algorithm.
+    
+    Parameters:
+        number: A numeric or string value representing the identifier to validate. The value will be converted to a string before validation.
+    
+    Returns:
+        bool: True when the input is a valid Verhoeff number; otherwise False.
+    """
     return verhoeff.is_valid(str(number))
 
 def is_valid_email(email):
+    """
+    Return True if the given value matches a basic email address pattern, False otherwise.
+    
+    This function converts the input to a string and checks it against a regular expression that requires:
+    - a local part containing letters, digits, and the characters . _ % + - 
+    - a single '@' separator
+    - a domain part containing letters, digits, dots or hyphens and a final dot followed by at least two letters.
+    
+    Parameters:
+        email: Any
+            Value to validate; will be coerced to str before matching.
+    
+    Returns:
+        bool: True when the value matches the email pattern, False otherwise.
+    """
     email_pattern = re.compile(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$')
     match = email_pattern.match(str(email))
     return bool(match)
 
 def is_valid_mobile_number(phone_number):
+    """
+    Validate whether a value is a 10-digit Indian-style mobile number matching the pattern: starts with one of 9,1,2,3,4,5,6,7,8 and followed by nine digits.
+    
+    Parameters:
+        phone_number (str|int): The phone number to validate; numeric values will be converted to string.
+    
+    Returns:
+        bool: True if the value matches the 10-digit pattern, False otherwise.
+    """
     pattern = re.compile(r'^[912345678]\d{9}$')
     match = re.match(pattern, str(phone_number))
     return bool(match)
 
 def deduce_sensitive_data(connection, database_name, schema_name, output_file, ignore_columns, ignore_tables):
+    """
+    Scan all tables in a schema, run de-identification on each column value, and append detected IDs, emails, and mobile numbers to report files.
+    
+    For each table in the given schema (skipping any in ignore_tables), every row and non-ignored column is passed to a Deduce instance. When annotations are produced and the column value validates as a Verhoeff ID, email, or mobile number, findings are appended to output files:
+    - IDs are written to the provided output_file (appended).
+    - Emails are appended to 'mails.txt'.
+    - Mobile numbers are appended to 'mobile_numbers.txt'.
+    A summary line is printed for each table with counts of emails, mobile numbers, and IDs found.
+    
+    Parameters:
+        connection: Database connection used to query tables and rows (not documented as a service).
+        database_name (str): Logical name used in log lines for the current database.
+        schema_name (str): PostgreSQL schema to set as the search path and scan for tables.
+        output_file (str): Path to the file where ID findings are appended.
+        ignore_columns (iterable[str] | None): Column names to skip during scanning.
+        ignore_tables (iterable[str] | None): Table names to skip during scanning.
+    
+    Side effects:
+        - Appends to output_file, 'mails.txt', and 'mobile_numbers.txt'.
+        - Prints per-table summaries to stdout.
+    """
     deduce_instance = Deduce()
 
     with connection.cursor() as cursor:
@@ -76,6 +130,25 @@ def deduce_sensitive_data(connection, database_name, schema_name, output_file, i
                 print(f"{mail_count} mail id's, {mobile_count} mobile numbers, and {id_count} id's are found in {table_name} table in {database_name} database")
 
 def push_reports_to_s3(s3_host, s3_region, s3_user_key, s3_user_secret, s3_bucket_name):
+    """
+    Upload local report files (id.txt, mails.txt, mobile_numbers.txt) to a MinIO/S3-compatible bucket.
+    
+    Ensures the target bucket exists (creates it if missing), ensures the three report files exist locally (creates empty files if needed), and uploads them under the keys:
+      - reports/id.txt
+      - reports/mails.txt
+      - reports/mobile_numbers.txt
+    
+    Parameters:
+        s3_host (str): Hostname (and optional port) of the MinIO/S3 endpoint.
+        s3_region (str): Region name to use when creating the bucket.
+        s3_user_key (str): Access key / username for the MinIO account.
+        s3_user_secret (str): Secret key / password for the MinIO account.
+        s3_bucket_name (str): Name of the bucket to upload reports into.
+    
+    Notes:
+        - The function initializes the Minio client with secure=False (HTTP). Set secure=True in the client initialization if HTTPS is required.
+        - MinIO-related errors are caught and printed; they are not re-raised.
+    """
     mc = Minio(s3_host,
                access_key=s3_user_key,
                secret_key=s3_user_secret,
@@ -101,6 +174,22 @@ def push_reports_to_s3(s3_host, s3_region, s3_user_key, s3_user_secret, s3_bucke
 
 def deduce_sensitive_data_in_databases():
     # Initialize config variable
+    """
+    Orchestrates reading configuration, scanning databases for sensitive data, writing findings to files, and uploading reports to MinIO.
+    
+    Reads PostgreSQL and MinIO configuration from environment variables or db.properties, connects to the first listed database, then iterates a configured list of databases and schemas calling deduce_sensitive_data(...) for each. Findings are appended to output files (id.txt, mails.txt, mobile_numbers.txt). After scanning, the function attempts to upload those report files to the configured MinIO/S3-compatible bucket via push_reports_to_s3(...). The database connection is closed when processing completes.
+    
+    Side effects:
+    - Opens a PostgreSQL connection.
+    - Writes/updates id.txt, mails.txt, and mobile_numbers.txt on disk.
+    - May create or upload objects to the configured MinIO/S3 bucket.
+    
+    Configuration sources:
+    - Primary: environment variables (db-server, db-port, db-su-user, postgres-password, s3-host, s3-region, s3-user-key, s3-user-secret, s3-bucket-name).
+    - Fallback: db.properties file with sections "PostgreSQL Connection", "MinIO Connection", "Ignored Tables", and "Ignored Columns".
+    
+    Note: The function does not return a value; connection errors or S3 errors will propagate from the underlying libraries.
+    """
     config = ConfigParser()
 
     # If environment variables are not set, read from db.properties file
