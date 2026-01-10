@@ -32,8 +32,8 @@
 	</developers>
 
 	<properties>
-		<guava.version>31.1-jre</guava.version>
-		<commons.beanutils.version>1.9.4</commons.beanutils.version>
+		<guava.version>32.0.0-jre</guava.version>
+		<commons.beanutils.version>1.11.0</commons.beanutils.version>
 		<json.simple.version>1.1.1</json.simple.version>
 		<commons.collections4.version>4.4</commons.collections4.version>
 		<commons.lang.version>2.6</commons.lang.version>
@@ -41,13 +41,13 @@
 		<httpcore5.version>5.2.1</httpcore5.version>
 		<testng.version>7.10.1</testng.version>
 		<javax.ws.rs-api.version>2.1.1</javax.ws.rs-api.version>
-		<commons.beanutils.version>1.9.2</commons.beanutils.version>
+		<commons.beanutils.version>1.11.0</commons.beanutils.version>
 		<resteasy-jaxrs.version>3.15.0.Final</resteasy-jaxrs.version>
-		<aws-java-sdk-s3.version>1.12.470</aws-java-sdk-s3.version>
+		<aws-java-sdk-s3.version>1.12.788</aws-java-sdk-s3.version>
 		<ngwebdriver.version>1.1.5</ngwebdriver.version>
-		<extentreports.version>5.0.9</extentreports.version>
-		<webdrivermanager.version>5.5.3</webdrivermanager.version>
-		<keycloak-admin-client.version>17.0.1</keycloak-admin-client.version>
+		<extentreports.version>5.1.0</extentreports.version>
+		<webdrivermanager.version>6.2.0</webdrivermanager.version>
+		<keycloak-admin-client.version>26.0.0</keycloak-admin-client.version>
 		<fileName>pmpuiv2-1.3.0-beta.2-SNAPSHOT-jar-with-dependencies</fileName>
 
 		<!-- maven -->
@@ -149,7 +149,7 @@
 		<dependency>
 			<groupId>org.postgresql</groupId>
 			<artifactId>postgresql</artifactId>
-			<version>42.6.0</version>
+			<version>42.6.1</version>
 		</dependency>
         <dependency>
           <groupId>org.hibernate.orm</groupId>
@@ -237,13 +237,13 @@
 		<dependency>
 			<groupId>com.nimbusds</groupId>
 			<artifactId>nimbus-jose-jwt</artifactId>
-			<version>9.37.2</version>
+			<version>10.0.2</version>
 		</dependency>
 	</dependencies>
 
 	<build>
 		<pluginManagement>
-			<plugins></plugins>
+			<plugins/>
 		</pluginManagement>
 		<plugins>
 			<plugin>
@@ -315,8 +315,7 @@
 							<target>
 								<!-- Create a shell script to run the JAR file
 								with executable permission -->
-								<chmod file="${project.build.directory}/*.jar"
-									perm="ugo+rx" />
+								<chmod file="${project.build.directory}/*.jar" perm="ugo+rx"/>
 							</target>
 						</configuration>
 					</execution>
@@ -335,10 +334,8 @@
 						<configuration>
 							<finalName>${fileName}</finalName>
 							<transformers>
-								<transformer
-									implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer" />
-								<transformer
-									implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+								<transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
+								<transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
 									<mainClass>
 										io.mosip.testrig.pmpuiv2.utility.TestRunner</mainClass>
 								</transformer>
